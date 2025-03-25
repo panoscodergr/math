@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Μαθηματικών με Βαθμολογία και Rank</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            font-size: 30px;
+            color: #333;
+        }
+        .question {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .answers {
+            list-style: none;
+            padding: 0;
+        }
+        .answers li {
+            margin: 15px 0;
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .answers li:hover {
+            background-color: #ddd;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            height: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress {
+            height: 100%;
+            background-color: #4caf50;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+        .result, .rank {
+            font-size: 22px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Quiz Μαθηματικών</h1>
+    <div id="question-container"></div>
+    <div class="progress-bar">
+        <div id="progress" class="progress">0%</div>
+    </div>
+    <button id="next-btn" onclick="nextQuestion()">Επόμενη Ερώτηση</button>
+    <div id="result-container" class="result"></div>
+    <div id="rank-container" class="rank"></div>
+</div>
+
+<script>
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // Ερωτήσεις μαθηματικών (60 ερωτήσεις)
+    const questions = [
+        { question: "Ποιο είναι το άθροισμα του 5 + 7;", answers: { a: "12", b: "13", c: "11", d: "14" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το αποτέλεσμα του 8 * 3;", answers: { a: "24", b: "20", c: "28", d: "27" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το αποτέλεσμα του 15 / 3;", answers: { a: "4", b: "5", c: "6", d: "3" }, correctAnswer: "b" },
+        { question: "Ποιο είναι το άθροισμα του 25 + 40;", answers: { a: "65", b: "55", c: "75", d: "45" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το αποτέλεσμα του 18 - 7;", answers: { a: "9", b: "11", c: "8", d: "10" }, correctAnswer: "b" },
+        { question: "Ποιο είναι το άθροισμα του 16 + 24;", answers: { a: "40", b: "50", c: "45", d: "30" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το αποτέλεσμα του 12 * 2;", answers: { a: "22", b: "24", c: "26", d: "20" }, correctAnswer: "b" },
+        { question: "Ποιο είναι το άθροισμα του 11 + 19;", answers: { a: "30", b: "28", c: "29", d: "31" }, correctAnswer: "c" },
+        { question: "Ποιο είναι το αποτέλεσμα του 6 * 6;", answers: { a: "36", b: "32", c: "33", d: "38" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το άθροισμα του 32 + 8;", answers: { a: "42", b: "40", c: "45", d: "35" }, correctAnswer: "a" },
+        { question: "Ποιο είναι το αποτέλεσμα του 25 * 4;", answers: { a: "100", b: "105", c: "95", d: "110" }, correctAnswer: "a" },
+        // Προσθέστε επιπλέον ερωτήσεις για να φτάσετε τις 60
+        // Παράδειγμα:
+        { question: "Ποιο είναι το αποτέλεσμα του 45 - 15;", answers: { a: "20", b: "30", c: "25", d: "35" }, correctAnswer: "a" },
+        // Προσθέστε άλλες ερωτήσεις για να φτάσετε τις 60
+    ];
+
+    function displayQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            finishQuiz();
+            return;
+        }
+
+        const question = questions[currentQuestionIndex];
+        const questionContainer = document.getElementById('question-container');
+        
+        const questionHTML = `
+            <div class="question">${question.question}</div>
+            <ul class="answers">
+                <li onclick="selectAnswer('a')">${question.answers.a}</li>
+                <li onclick="selectAnswer('b')">${question.answers.b}</li>
+                <li onclick="selectAnswer('c')">${question.answers.c}</li>
+                <li onclick="selectAnswer('d')">${question.answers.d}</li>
+            </ul>
+        `;
+        
+        questionContainer.innerHTML = questionHTML;
+        updateProgressBar();
+    }
+
+    function selectAnswer(answer) {
+        const correctAnswer = questions[currentQuestionIndex].correctAnswer;
+
+        if (answer === correctAnswer) {
+            score += 10;
+        }
+
+        // Disabling the answers after selection
+        const answers = document.querySelectorAll('.answers li');
+        answers.forEach(answer => answer.style.pointerEvents = "none");
+
+        document.getElementById('next-btn').style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            displayQuestion();
+        } else {
+            finishQuiz();
+        }
+
+        document.getElementById('next-btn').style.display = "none";
+    }
+
+    function finishQuiz() {
+        document.getElementById('next-btn').style.display = "none";
+
+        // Βαθμολογία και Rank
+        let rank = '';
+        if (score <= 300) {
+            rank = 'Αρχάριος';
+        } else if (score > 300 && score <= 600) {
+            rank = 'Μέτριος';
+        } else if (score > 600 && score <= 900) {
+            rank = 'Προχωρημένος';
+        } else {
+            rank = 'Ειδικός';
+        }
+
+        document.getElementById('result-container').innerHTML = `Η βαθμολογία σας είναι: ${score}`;
+        document.getElementById('rank-container').innerHTML = `Το Rank σας είναι: ${rank}`;
+    }
+
+    function updateProgressBar() {
+        const progress = (currentQuestionIndex / questions.length) * 100;
+        const progressBar = document.getElementById('progress');
+        progressBar.style.width = progress + '%';
+        progressBar.innerHTML = Math.round(progress) + '%';
+    }
+
+    displayQuestion();
+</script>
+
+</body>
+</html>
